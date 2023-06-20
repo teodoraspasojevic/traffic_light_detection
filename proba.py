@@ -18,3 +18,4 @@ print('results end')
 print('Model parameters:')
 for k, v in model.named_parameters():
     print(k)
+print('works')
