@@ -1,0 +1,13 @@
+train: ../datasets/traffic_light_real_world/train/images
+val: ../datasets/traffic_light_real_world/valid/images
+test: ../datasets/traffic_light_real_world/test/images
+
+nc: 1
+names: ['traffic_light']
+
+roboflow:
+  workspace: bachelor-thesis-sru9q
+  project: traffic-light-detection-fkl1u
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/bachelor-thesis-sru9q/traffic-light-detection-fkl1u/dataset/1
