@@ -13,6 +13,7 @@ results = model(img)
 print('results beg')
 results.show()  # or .show(), .save(), .crop(), .pandas(), etc.
 results.save()
+results.crop()
 print('results end')
 
 # Model parameters
