@@ -1,0 +1,13 @@
+train: ../datasets/traffic_light_carla_world/train/images
+val: ../datasets/traffic_light_carla_world/valid/images
+test: ../datasets/traffic_light_carla_world/test/images
+
+nc: 1
+names: ['traffic light']
+
+roboflow:
+  workspace: bachelor-thesis-sru9q
+  project: traffic-light-detection-carla-world
+  version: 4
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/bachelor-thesis-sru9q/traffic-light-detection-carla-world/dataset/4
