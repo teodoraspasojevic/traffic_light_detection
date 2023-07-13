@@ -99,9 +99,9 @@ def detect_traffic_light_state(img_bgr):
     plt.show()
 
     # Define ROIs
-    red_lower1 = np.array([0, 160, 200])
+    red_lower1 = np.array([0, 120, 50])
     red_upper1 = np.array([10, 255, 255])
-    red_lower2 = np.array([170, 160, 200])
+    red_lower2 = np.array([170, 120, 50])
     red_upper2 = np.array([180, 255, 255])
 
     yellow_lower = np.array([20, 100, 200])
@@ -139,31 +139,6 @@ def detect_traffic_light_state(img_bgr):
     closing_red = cv2.morphologyEx(red_roi, cv2.MORPH_CLOSE, kernel=np.ones((5, 5), np.uint8))
     closing_yellow = cv2.morphologyEx(yellow_roi, cv2.MORPH_CLOSE, kernel=np.ones((5, 5), np.uint8))
     closing_green = cv2.morphologyEx(green_roi, cv2.MORPH_CLOSE, kernel=np.ones((5, 5), np.uint8))
-
-    plt.figure()
-    plt.subplot(1, 3, 1)
-    plt.imshow(closing_red)
-    plt.subplot(1, 3, 2)
-    plt.imshow(closing_yellow)
-    plt.subplot(1, 3, 3)
-    plt.imshow(closing_green)
-    plt.show()
-
-    # Saturate Pixel Values
-    for i in range(rows):
-        for j in range(cols):
-            if closing_red[i, j, 0] > 200:
-                closing_red[i, j, :] = [255, 0, 0]
-            else:
-                closing_red[i, j, :] = [0, 0, 0]
-            if closing_yellow[i, j, 0] > 200 and closing_yellow[i, j, 1] > 200:
-                closing_yellow[i, j, :] = [255, 255, 0]
-            else:
-                closing_yellow[i, j, :] = [0, 0, 0]
-            if closing_green[i, j, 1] > 200 or (closing_green[i, j, 1] > 100 and closing_green[i, j, 2] > 100):
-                closing_green[i, j, :] = [0, 255, 0]
-            else:
-                closing_green[i, j, :] = [0, 0, 0]
 
     plt.figure()
     plt.subplot(1, 3, 1)
@@ -212,58 +187,10 @@ def detect_traffic_light_state(img_bgr):
         print('Class: green light')
 
 
-def detect_lines(img_bgr):
-    # Convert to RGB
-    img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-    rows, cols, nchannel = img_rgb.shape
-
-    # Detect Edges on the Image
-    threshold1 = 200
-    threshold2 = 400
-
-    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray, threshold1, threshold2)
-
-    plt.figure()
-    plt.subplot(1, 2, 1)
-    plt.imshow(gray)
-    plt.subplot(1, 2, 2)
-    plt.imshow(edges)
-    plt.show()
-
-    # Detect horizontal lines
-    threshold = 100
-    minLineLength = 50
-    maxLineGap = 10
-    horizontal_lines = cv2.HoughLinesP(edges, 1, np.pi / 180, threshold, minLineLength, maxLineGap)
-
-    if horizontal_lines:
-        for line in horizontal_lines:
-            x1, y1, x2, y2 = line[0]
-            cv2.line(img_rgb, (x1, y1), (x2, y2), (0, 255, 0), 2)
-        cv2.imshow('Detected Lines', img_rgb)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
-    # # Rotate the grayscale image by 90 degrees for vertical line detection
-    # rotated_gray = np.rot90(gray)
-    #
-    # # Apply preprocessing (e.g., edge detection) on the rotated image
-    # rotated_edges = cv2.Canny(rotated_gray, threshold1, threshold2)
-    #
-    # # Detect vertical lines
-    # vertical_lines = cv2.HoughLinesP(rotated_edges, 1, np.pi / 180, threshold, minLineLength, maxLineGap)
-    #
-    # # Rotate the detected vertical lines back to their original orientation
-    # for line in vertical_lines:
-    #     x1, y1, x2, y2 = line[0]
-    #     cv2.line(image, (y1, x1), (y2, x2), (0, 0, 255), 2)
-
-
 if __name__ == '__main__':
 
-    path = directory_path2 = 'C:/traffic_light_detection/CV/classification/green/green300.jpg'
+    path = directory_path2 = 'C:/traffic_light_detection/CV/classification/none/none18.jpg'
     img = cv2.imread(path)
     assert img is not None, "file could not be read, check with os.path.exists()"
     detect_traffic_light_state(img)
-    detect_lines(img)
+    # detect_lines(img)

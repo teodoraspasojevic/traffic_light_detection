@@ -50,14 +50,14 @@ optimizer: SGD
 sync_bn: false
 workers: 8
 project: runs_cw
-name: transfer_learning
+name: fine_tuning
 exist_ok: false
 quad: false
 cos_lr: false
 label_smoothing: 0.0
 patience: 100
 freeze:
-- 24
+- 0
 save_period: -1
 seed: 0
 local_rank: -1
@@ -65,4 +65,4 @@ entity: null
 upload_dataset: false
 bbox_interval: -1
 artifact_alias: latest
-save_dir: runs_cw/transfer_learning
+save_dir: runs_cw/fine_tuning

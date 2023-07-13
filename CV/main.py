@@ -6,10 +6,18 @@ from matplotlib import pyplot as plt
 num_red = 0
 num_yellow = 0
 num_green = 0
+num_none = 0
+
+total_red = 618
+total_yellow = 16
+total_green = 421
+total_none = 39
+
+conf_matrix = np.zeros((4, 4))
 
 
-def detect_traffic_light_state(img_bgr):
-    global num_red, num_yellow, num_green
+def detect_traffic_light_state(img_bgr, label):
+    global num_red, num_yellow, num_green, num_none, conf_matrix
 
     # Convert Image to RGB
     img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
@@ -28,9 +36,9 @@ def detect_traffic_light_state(img_bgr):
     img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
 
     # Define ROIs
-    red_lower1 = np.array([0, 160, 200])
+    red_lower1 = np.array([0, 120, 50])
     red_upper1 = np.array([10, 255, 255])
-    red_lower2 = np.array([170, 160, 200])
+    red_lower2 = np.array([170, 120, 50])
     red_upper2 = np.array([180, 255, 255])
 
     yellow_lower = np.array([20, 100, 200])
@@ -60,26 +68,10 @@ def detect_traffic_light_state(img_bgr):
     closing_yellow = cv2.morphologyEx(yellow_roi, cv2.MORPH_CLOSE, kernel=np.ones((5, 5), np.uint8))
     closing_green = cv2.morphologyEx(green_roi, cv2.MORPH_CLOSE, kernel=np.ones((5, 5), np.uint8))
 
-    # Saturate Pixel Values
-    for i in range(rows):
-        for j in range(cols):
-            if closing_red[i, j, 0] > 200:
-                closing_red[i, j, :] = [255, 0, 0]
-            else:
-                closing_red[i, j, :] = [0, 0, 0]
-            if closing_yellow[i, j, 0] > 200 and closing_yellow[i, j, 1] > 200:
-                closing_yellow[i, j, :] = [255, 255, 0]
-            else:
-                closing_yellow[i, j, :] = [0, 0, 0]
-            if closing_green[i, j, 1] > 200 or (closing_green[i, j, 1] > 100 and closing_green[i, j, 2] > 100):
-                closing_green[i, j, :] = [0, 255, 0]
-            else:
-                closing_green[i, j, :] = [0, 0, 0]
-
     # Count Weighted Pixel Sum
     sum_red = 0
-    sum_green = 0
     sum_yellow = 0
+    sum_green = 0
     for i in range(rows):
         for j in range(cols):
             if np.any(closing_red[i, j, :] != [0, 0, 0]):
@@ -98,51 +90,96 @@ def detect_traffic_light_state(img_bgr):
                 else:
                     sum_green += 1
 
-    # print('Number of red pixels is: ', sum_red)
-    # print('Number of yellow pixels is: ', sum_yellow)
-    # print('Number of green pixels is: ', sum_green)
-
     # Classify and Save Image
     output_directory = 'C:/traffic_light_detection/CV/classification'
 
     sums = [sum_red, sum_yellow, sum_green]
-    if max(sums) == sum_red:
+    if max(sums) == 0:
+        num_none += 1
+        output_directory = os.path.join(output_directory, 'none')
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
+        output_filename = 'none' + str(num_none) + '.jpg'
+        conf_matrix[3, label] += 1
+    elif max(sums) == sum_red:
         num_red += 1
         output_directory = os.path.join(output_directory, 'red')
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
         output_filename = 'red' + str(num_red) + '.jpg'
+        conf_matrix[0, label] += 1
     elif max(sums) == sum_yellow:
         num_yellow += 1
         output_directory = os.path.join(output_directory, 'yellow')
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
         output_filename = 'yellow' + str(num_yellow) + '.jpg'
+        conf_matrix[1, label] += 1
     else:
         num_green += 1
         output_directory = os.path.join(output_directory, 'green')
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
         output_filename = 'green' + str(num_green) + '.jpg'
+        conf_matrix[2, label] += 1
     output_path = os.path.join(output_directory, output_filename)
     cv2.imwrite(output_path, img_bgr)
 
 
 if __name__ == '__main__':
 
-    directory_path = '/home/rtrk/teodora/traffic_light_detection/runs_rw1/detect_test_ft_crops/crops/traffic_light'
-    directory_path2 = 'C:/traffic_light_detection/runs_rw1/detect_test_ft_crops/crops/traffic_light'
+    # directory_path = '/home/rtrk/teodora/traffic_light_detection/runs_rw1/detect_test_ft_crops/crops/traffic_light'
+    # directory_path2 = 'C:/traffic_light_detection/runs_rw1/detect_test_ft_crops/crops/traffic_light'
+    directories = ['C:/traffic_light_detection/CV/red', 'C:/traffic_light_detection/CV/yellow',
+                   'C:/traffic_light_detection/CV/green', 'C:/traffic_light_detection/CV/none']
+    classes = [0, 1, 2, 3]
 
-    for filename in os.listdir(directory_path2):
-        if filename.endswith('.jpg'):
-            file_path = os.path.join(directory_path2, filename)
+    for directory_path, label in zip(directories, classes):
+        for filename in os.listdir(directory_path):
+            if filename.endswith('.jpg'):
+                file_path = os.path.join(directory_path, filename)
 
-            img = cv2.imread(file_path)
-            assert img is not None, "file could not be read, check with os.path.exists()"
+                img = cv2.imread(file_path)
+                assert img is not None, "file could not be read, check with os.path.exists()"
 
-            detect_traffic_light_state(img)
-            # detect_lines(img)
+                detect_traffic_light_state(img, label)
+
+    conf_matrix[0, 0] /= total_red
+    conf_matrix[1, 0] /= total_red
+    conf_matrix[2, 0] /= total_red
+    conf_matrix[3, 0] /= total_red
+    conf_matrix[0, 1] /= total_yellow
+    conf_matrix[1, 1] /= total_yellow
+    conf_matrix[2, 1] /= total_yellow
+    conf_matrix[3, 1] /= total_yellow
+    conf_matrix[0, 2] /= total_green
+    conf_matrix[1, 2] /= total_green
+    conf_matrix[2, 2] /= total_green
+    conf_matrix[3, 2] /= total_green
+    conf_matrix[0, 3] /= total_none
+    conf_matrix[1, 3] /= total_none
+    conf_matrix[2, 3] /= total_none
+    conf_matrix[3, 3] /= total_none
+
+    conf_matrix = np.round(conf_matrix, 3)
 
     print('Final number of  detected traffic lights with red light: ', num_red)
     print('Final number of  detected traffic lights with yellow light: ', num_yellow)
     print('Final number of  detected traffic lights with green light: ', num_green)
+    print('Confusion matrix: ', conf_matrix)
+
+    # Plotting the confusion matrix as a heatmap
+    plt.imshow(conf_matrix, cmap='Blues')
+
+    plt.colorbar()
+    plt.xlabel('True')
+    plt.ylabel('Predicted')
+    tick_marks = np.arange(len(conf_matrix))
+    plt.xticks(tick_marks, ['red', 'yellow', 'green', 'none'])
+    plt.yticks(tick_marks, ['red', 'yellow', 'green', 'none'])
+    for i in range(len(conf_matrix)):
+        for j in range(len(conf_matrix)):
+            plt.text(j, i, str(conf_matrix[i, j]), ha='center', va='center', color='black')
+
+    plt.savefig('confusion_matrix.png', format='png')
+    plt.show()
