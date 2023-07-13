@@ -1,31 +1,30 @@
 import cv2
 import numpy as np
 import os
-from matplotlib import cm
-from matplotlib import colors as clr
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 num_red = 0
 num_yellow = 0
 num_green = 0
+num_none = 0
+
+total_red = 618
+total_yellow = 16
+total_green = 421
+total_none = 39
+
+conf_matrix = np.zeros((4, 4))
 
 
-def detect_traffic_light_state(img_bgr):
-    global num_red, num_yellow, num_green
+def detect_traffic_light_state(img_bgr, label):
+    global num_red, num_yellow, num_green, num_none, conf_matrix
 
     # Convert Image to RGB
     img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
     rows, cols, nchannel = img_rgb.shape
     channels = cv2.split(img_rgb)
 
-    # Plot RGB Image in 2D Space
-    # plt.figure()
-    # plt.imshow(img_rgb)
-    # plt.title('RGB Image')
-    # plt.show()
-
-    # Resize Image
+    # Cutoff Image
     cut_off_percentage_height = 0.1
     cut_off_percentage_width = 0.15
     cut_of_height = int(cut_off_percentage_height * rows)
@@ -33,78 +32,13 @@ def detect_traffic_light_state(img_bgr):
     img_rgb = img_rgb[cut_of_height:rows-cut_of_height, cut_off_width: cols-cut_off_width]
     rows, cols, nchannel = img_rgb.shape
 
-    # plt.figure()
-    # plt.imshow(img_rgb)
-    # plt.title('RGB Image with Cut Offs')
-    # plt.show()
-
-    # Plot RGB Image in 3D Space
-    r, g, b = cv2.split(img_rgb)
-
-    # fig = plt.figure()
-    # axis = fig.add_subplot(1, 1, 1, projection='3d')
-    #
-    # pixel_colors = img_rgb.reshape((np.shape(img_rgb)[0] * np.shape(img_rgb)[1], 3))
-    # norm = clr.Normalize(vmin=-1., vmax=1.)
-    # norm.autoscale(pixel_colors)
-    # pixel_colors = norm(pixel_colors).tolist()
-    #
-    # axis.scatter(r.flatten(), g.flatten(), b.flatten(), facecolors=pixel_colors, marker='.')
-    # axis.set_xlabel('Red')
-    # axis.set_ylabel('Green')
-    # axis.set_zlabel('Blue')
-    # plt.title('RGB Image')
-    # plt.show()
-
-    # Calculate the Histograms for Each Channel
-    histograms = []
-    colors = ['r', 'g', 'b']
-    for channel, color in zip(channels, colors):
-        histogram = cv2.calcHist([channel], [0], None, [256], [0, 256])
-        histograms.append(histogram)
-        plt.plot(histogram, color=color)
-
-    # plt.xlabel('Pixel Value')
-    # plt.ylabel('Frequency')
-    # plt.title('RGB Image Histogram')
-    # plt.show()
-
     # Transform Image from BGR to HSV Color Space
     img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
 
-    # Plot HSV Image in 2D Space
-    # plt.figure()
-    # plt.imshow(img_hsv)
-    # plt.title('HSV Image')
-    # plt.show()
-
-    # Plot HSV Image in 3D Space
-    h, s, v = cv2.split(img_hsv)
-
-    # fig = plt.figure()
-    # axis = fig.add_subplot(1, 1, 1, projection='3d')
-    #
-    # axis.scatter(h.flatten(), s.flatten(), v.flatten(), facecolors=pixel_colors, marker='.')
-    # axis.set_xlabel('Hue')
-    # axis.set_ylabel('Saturation')
-    # axis.set_zlabel('Value')
-    # plt.title('HSV Image')
-    # plt.show()
-
-    # Plot Histogram for HSV Image
-    histogram = cv2.calcHist([img_hsv[:, :, 0]], [0], None, [256], [0, 256])
-
-    # plt.figure()
-    # plt.plot(histogram)
-    # plt.xlabel('Pixel Value')
-    # plt.ylabel('Frequency')
-    # plt.title('HSV Image Histogram')
-    # plt.show()
-
     # Define ROIs
-    red_lower1 = np.array([0, 160, 200])
+    red_lower1 = np.array([0, 120, 50])
     red_upper1 = np.array([10, 255, 255])
-    red_lower2 = np.array([170, 160, 200])
+    red_lower2 = np.array([170, 120, 50])
     red_upper2 = np.array([180, 255, 255])
 
     yellow_lower = np.array([20, 100, 200])
@@ -129,58 +63,15 @@ def detect_traffic_light_state(img_bgr):
     yellow_roi = cv2.bitwise_and(img_rgb, img_rgb, mask=yellow_mask)
     green_roi = cv2.bitwise_and(img_rgb, img_rgb, mask=green_mask)
 
-    # plt.figure()
-    # plt.subplot(1, 3, 1)
-    # plt.imshow(red_roi)
-    # plt.subplot(1, 3, 2)
-    # plt.imshow(green_roi)
-    # plt.subplot(1, 3, 3)
-    # plt.imshow(yellow_roi)
-    # plt.show()
-
     # Close the Image
     closing_red = cv2.morphologyEx(red_roi, cv2.MORPH_CLOSE, kernel=np.ones((5, 5), np.uint8))
     closing_yellow = cv2.morphologyEx(yellow_roi, cv2.MORPH_CLOSE, kernel=np.ones((5, 5), np.uint8))
     closing_green = cv2.morphologyEx(green_roi, cv2.MORPH_CLOSE, kernel=np.ones((5, 5), np.uint8))
 
-    # plt.figure()
-    # plt.subplot(1, 3, 1)
-    # plt.imshow(closing_red)
-    # plt.subplot(1, 3, 2)
-    # plt.imshow(closing_green)
-    # plt.subplot(1, 3, 3)
-    # plt.imshow(closing_yellow)
-    # plt.show()
-
-    # Saturate Pixel Values
-    for i in range(rows):
-        for j in range(cols):
-            if closing_red[i, j, 0] > 200:
-                closing_red[i, j, :] = [255, 0, 0]
-            else:
-                closing_red[i, j, :] = [0, 0, 0]
-            if closing_yellow[i, j, 0] > 200 and closing_yellow[i, j, 1] > 200:
-                closing_yellow[i, j, :] = [255, 255, 0]
-            else:
-                closing_yellow[i, j, :] = [0, 0, 0]
-            if closing_green[i, j, 1] > 200 or (closing_green[i, j, 1] > 100 and closing_green[i, j, 2] > 100):
-                closing_green[i, j, :] = [0, 255, 0]
-            else:
-                closing_green[i, j, :] = [0, 0, 0]
-
-    # plt.figure()
-    # plt.subplot(1, 3, 1)
-    # plt.imshow(closing_red)
-    # plt.subplot(1, 3, 2)
-    # plt.imshow(closing_yellow)
-    # plt.subplot(1, 3, 3)
-    # plt.imshow(closing_green)
-    # plt.show()
-
     # Count Weighted Pixel Sum
     sum_red = 0
-    sum_green = 0
     sum_yellow = 0
+    sum_green = 0
     for i in range(rows):
         for j in range(cols):
             if np.any(closing_red[i, j, :] != [0, 0, 0]):
@@ -199,100 +90,96 @@ def detect_traffic_light_state(img_bgr):
                 else:
                     sum_green += 1
 
-    # print('Number of red pixels is: ', sum_red)
-    # print('Number of yellow pixels is: ', sum_yellow)
-    # print('Number of green pixels is: ', sum_green)
-
     # Classify and Save Image
-    output_directory = '/home/rtrk/teodora/traffic_light_detection/CV/classification'
+    output_directory = 'C:/traffic_light_detection/CV/classification'
 
     sums = [sum_red, sum_yellow, sum_green]
-    if max(sums) == sum_red:
+    if max(sums) == 0:
+        num_none += 1
+        output_directory = os.path.join(output_directory, 'none')
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
+        output_filename = 'none' + str(num_none) + '.jpg'
+        conf_matrix[3, label] += 1
+    elif max(sums) == sum_red:
         num_red += 1
         output_directory = os.path.join(output_directory, 'red')
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
         output_filename = 'red' + str(num_red) + '.jpg'
-
+        conf_matrix[0, label] += 1
     elif max(sums) == sum_yellow:
         num_yellow += 1
         output_directory = os.path.join(output_directory, 'yellow')
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
         output_filename = 'yellow' + str(num_yellow) + '.jpg'
+        conf_matrix[1, label] += 1
     else:
         num_green += 1
         output_directory = os.path.join(output_directory, 'green')
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
         output_filename = 'green' + str(num_green) + '.jpg'
+        conf_matrix[2, label] += 1
     output_path = os.path.join(output_directory, output_filename)
     cv2.imwrite(output_path, img_bgr)
 
 
-def detect_lines(img_bgr):
-    # Convert to RGB
-    img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-    rows, cols, nchannel = img_rgb.shape
-
-    # Detect Edges on the Image
-    threshold1 = 50
-    threshold2 = 200
-
-    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray, threshold1, threshold2)
-
-    plt.figure()
-    plt.subplot(1, 2, 1)
-    plt.imshow(gray)
-    plt.subplot(1, 2, 2)
-    plt.imshow(edges)
-    plt.show()
-
-    # Detect horizontal lines
-    threshold = 50
-    minLineLength = 50
-    maxLineGap = 10
-    horizontal_lines = cv2.HoughLinesP(edges, 1, np.pi / 180, threshold, minLineLength, maxLineGap)
-
-    for line in horizontal_lines:
-        x1, y1, x2, y2 = line[0]
-        cv2.line(img_rgb, (x1, y1), (x2, y2), (0, 255, 0), 2)
-    cv2.imshow('Detected Lines', img_rgb)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-    # # Rotate the grayscale image by 90 degrees for vertical line detection
-    # rotated_gray = np.rot90(gray)
-    #
-    # # Apply preprocessing (e.g., edge detection) on the rotated image
-    # rotated_edges = cv2.Canny(rotated_gray, threshold1, threshold2)
-    #
-    # # Detect vertical lines
-    # vertical_lines = cv2.HoughLinesP(rotated_edges, 1, np.pi / 180, threshold, minLineLength, maxLineGap)
-    #
-    # # Rotate the detected vertical lines back to their original orientation
-    # for line in vertical_lines:
-    #     x1, y1, x2, y2 = line[0]
-    #     cv2.line(image, (y1, x1), (y2, x2), (0, 0, 255), 2)
-    #
-
-
 if __name__ == '__main__':
 
-    directory_path = '/home/rtrk/teodora/traffic_light_detection/runs_rw1/detect_test_ft_crops/crops/traffic_light'
-    directory_path2 = 'C:/traffic_light_detection/runs_rw1/detect_test_ft_crops/crops/traffic_light'
+    # directory_path = '/home/rtrk/teodora/traffic_light_detection/runs_rw1/detect_test_ft_crops/crops/traffic_light'
+    # directory_path2 = 'C:/traffic_light_detection/runs_rw1/detect_test_ft_crops/crops/traffic_light'
+    directories = ['C:/traffic_light_detection/CV/red', 'C:/traffic_light_detection/CV/yellow',
+                   'C:/traffic_light_detection/CV/green', 'C:/traffic_light_detection/CV/none']
+    classes = [0, 1, 2, 3]
 
-    for filename in os.listdir(directory_path):
-        if filename.endswith('.jpg'):
-            file_path = os.path.join(directory_path, filename)
+    for directory_path, label in zip(directories, classes):
+        for filename in os.listdir(directory_path):
+            if filename.endswith('.jpg'):
+                file_path = os.path.join(directory_path, filename)
 
-            img = cv2.imread(file_path)
-            assert img is not None, "file could not be read, check with os.path.exists()"
+                img = cv2.imread(file_path)
+                assert img is not None, "file could not be read, check with os.path.exists()"
 
-            detect_traffic_light_state(img)
-            # detect_lines(img)
+                detect_traffic_light_state(img, label)
+
+    conf_matrix[0, 0] /= total_red
+    conf_matrix[1, 0] /= total_red
+    conf_matrix[2, 0] /= total_red
+    conf_matrix[3, 0] /= total_red
+    conf_matrix[0, 1] /= total_yellow
+    conf_matrix[1, 1] /= total_yellow
+    conf_matrix[2, 1] /= total_yellow
+    conf_matrix[3, 1] /= total_yellow
+    conf_matrix[0, 2] /= total_green
+    conf_matrix[1, 2] /= total_green
+    conf_matrix[2, 2] /= total_green
+    conf_matrix[3, 2] /= total_green
+    conf_matrix[0, 3] /= total_none
+    conf_matrix[1, 3] /= total_none
+    conf_matrix[2, 3] /= total_none
+    conf_matrix[3, 3] /= total_none
+
+    conf_matrix = np.round(conf_matrix, 3)
 
     print('Final number of  detected traffic lights with red light: ', num_red)
     print('Final number of  detected traffic lights with yellow light: ', num_yellow)
     print('Final number of  detected traffic lights with green light: ', num_green)
+    print('Confusion matrix: ', conf_matrix)
+
+    # Plotting the confusion matrix as a heatmap
+    plt.imshow(conf_matrix, cmap='Blues')
+
+    plt.colorbar()
+    plt.xlabel('True')
+    plt.ylabel('Predicted')
+    tick_marks = np.arange(len(conf_matrix))
+    plt.xticks(tick_marks, ['red', 'yellow', 'green', 'none'])
+    plt.yticks(tick_marks, ['red', 'yellow', 'green', 'none'])
+    for i in range(len(conf_matrix)):
+        for j in range(len(conf_matrix)):
+            plt.text(j, i, str(conf_matrix[i, j]), ha='center', va='center', color='black')
+
+    plt.savefig('confusion_matrix.png', format='png')
+    plt.show()
