@@ -3,13 +3,14 @@ import numpy as np
 from matplotlib import colors as clr
 from matplotlib import pyplot as plt
 
+num_none = 0
 num_red = 0
 num_yellow = 0
 num_green = 0
 
 
 def detect_traffic_light_state(img_bgr):
-    global num_red, num_yellow, num_green
+    global num_red, num_yellow, num_green, num_none
 
     # Convert Image to RGB
     img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
@@ -109,7 +110,7 @@ def detect_traffic_light_state(img_bgr):
 
     green_lower1 = np.array([80, 50, 200])
     green_upper1 = np.array([100, 255, 255])
-    green_lower2 = np.array([70, 100, 150])
+    green_lower2 = np.array([50, 100, 150])
     green_upper2 = np.array([80, 255, 255])
 
     # Create masks for Each Color
@@ -176,7 +177,10 @@ def detect_traffic_light_state(img_bgr):
     print('Number of green pixels is: ', sum_green)
 
     sums = [sum_red, sum_yellow, sum_green]
-    if max(sums) == sum_red:
+    if max(sums) == 0:
+        num_none += 1
+        print('Class: light off')
+    elif max(sums) == sum_red:
         num_red += 1
         print('Class: red light')
     elif max(sums) == sum_yellow:
@@ -190,7 +194,8 @@ def detect_traffic_light_state(img_bgr):
 if __name__ == '__main__':
 
     path = directory_path2 = 'C:/traffic_light_detection/CV/classification/none/none18.jpg'
-    img = cv2.imread(path)
+    path2 = '/home/rtrk/teodora/traffic_light_detection/runs_cw/detect_shuffle_ft/crops/0/561_1687864832736_png.rf.5331f1f9628765bc41aed7340cc8ca9a12.jpg'
+    img = cv2.imread(path2)
     assert img is not None, "file could not be read, check with os.path.exists()"
     detect_traffic_light_state(img)
     # detect_lines(img)

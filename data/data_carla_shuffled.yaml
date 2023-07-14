@@ -1,0 +1,13 @@
+train: ../datasets/traffic_light_carla_world_shuffled/train/images
+val: ../datasets/traffic_light_carla_world_shuffled/valid/images
+test: ../datasets/traffic_light_carla_world_shuffled/test/images
+
+nc: 1
+names: ['0']
+
+roboflow:
+  workspace: bachelor-thesis-sru9q
+  project: traffic-light-carla-world-shuffled
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/bachelor-thesis-sru9q/traffic-light-carla-world-shuffled/dataset/1
