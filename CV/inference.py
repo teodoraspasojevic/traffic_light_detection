@@ -105,7 +105,7 @@ def detect_traffic_light_state(img_bgr):
     red_lower2 = np.array([170, 80, 100])
     red_upper2 = np.array([180, 255, 255])
 
-    yellow_lower = np.array([20, 30, 200])
+    yellow_lower = np.array([10, 30, 200])
     yellow_upper = np.array([40, 255, 255])
 
     green_lower1 = np.array([80, 50, 200])
@@ -156,17 +156,17 @@ def detect_traffic_light_state(img_bgr):
     sum_yellow = 0
     for i in range(rows):
         for j in range(cols):
-            if np.any(closing_red[i, j, :] != [0, 0, 0]):
+            if np.any(closing_red[i, j, :] != [0, 0, 0]) and rows*0.2 < i < rows*0.8 and cols*0.2 < j < cols*0.8:
                 if i < rows * 1/3:
                     sum_red += 3
                 else:
                     sum_red += 1
-            if np.any(closing_yellow[i, j, :] != [0, 0, 0]):
+            if np.any(closing_yellow[i, j, :] != [0, 0, 0]) and rows*0.2 < i < rows*0.8 and cols*0.2 < j < cols*0.8:
                 if rows * 1/3 < i < rows * 2/3:
                     sum_yellow += 3
                 else:
                     sum_yellow += 1
-            if np.any(closing_green[i, j, :] != [0, 0, 0]):
+            if np.any(closing_green[i, j, :] != [0, 0, 0]) and rows*0.2 < i < rows*0.8 and cols*0.2 < j < cols*0.8:
                 if i > rows * 2/3:
                     sum_green += 3
                 else:
@@ -193,9 +193,9 @@ def detect_traffic_light_state(img_bgr):
 
 if __name__ == '__main__':
 
-    path = directory_path2 = 'C:/traffic_light_detection/CV/classification/none/none18.jpg'
+    path1 = 'C:/traffic_light_detection/CV/classification1/green/green8.jpg'
     path2 = '/home/rtrk/teodora/traffic_light_detection/CV/classification2/red/red1.jpg'
-    img = cv2.imread(path2)
+    img = cv2.imread(path1)
     assert img is not None, "file could not be read, check with os.path.exists()"
     detect_traffic_light_state(img)
     # detect_lines(img)

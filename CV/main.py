@@ -8,11 +8,13 @@ num_yellow = 0
 num_green = 0
 num_none = 0
 
+# Number of images in dataset1
 # total_red = 618
 # total_yellow = 16
 # total_green = 421
 # total_none = 39
 
+# Number of images in dataset2
 total_red = 432
 total_yellow = 31
 total_green = 149
@@ -37,7 +39,7 @@ def detect_traffic_light_state(img_bgr, label):
     img_rgb = img_rgb[cut_of_height:rows-cut_of_height, cut_off_width: cols-cut_off_width]
     rows, cols, nchannel = img_rgb.shape
 
-    # Transform Image from BGR to HSV Color Space
+    # Transform Image from RGB to HSV Color Space
     img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
 
     # Define ROIs
@@ -46,7 +48,7 @@ def detect_traffic_light_state(img_bgr, label):
     red_lower2 = np.array([170, 50, 100])
     red_upper2 = np.array([180, 255, 255])
 
-    yellow_lower = np.array([20, 30, 200])
+    yellow_lower = np.array([10, 30, 200])
     yellow_upper = np.array([40, 255, 255])
 
     green_lower1 = np.array([80, 50, 200])
@@ -79,17 +81,17 @@ def detect_traffic_light_state(img_bgr, label):
     sum_green = 0
     for i in range(rows):
         for j in range(cols):
-            if np.any(closing_red[i, j, :] != [0, 0, 0]):
+            if np.any(closing_red[i, j, :] != [0, 0, 0]) and rows*0.2 < i < rows*0.8 and cols*0.2 < j < cols*0.8:
                 if i < rows * 1/3:
                     sum_red += 3
                 else:
                     sum_red += 1
-            if np.any(closing_yellow[i, j, :] != [0, 0, 0]):
+            if np.any(closing_yellow[i, j, :] != [0, 0, 0]) and rows*0.2 < i < rows*0.8 and cols*0.2 < j < cols*0.8:
                 if rows * 1/3 < i < rows * 2/3:
                     sum_yellow += 3
                 else:
                     sum_yellow += 1
-            if np.any(closing_green[i, j, :] != [0, 0, 0]):
+            if np.any(closing_green[i, j, :] != [0, 0, 0]) and rows*0.2 < i < rows*0.8 and cols*0.2 < j < cols*0.8:
                 if i > rows * 2/3:
                     sum_green += 3
                 else:
@@ -133,9 +135,7 @@ def detect_traffic_light_state(img_bgr, label):
 
 if __name__ == '__main__':
 
-    # directory_path = '/home/rtrk/teodora/traffic_light_detection/runs_rw1/detect_test_ft_crops/crops/traffic_light'
-    # directory_path2 = 'C:/traffic_light_detection/runs_rw1/detect_test_ft_crops/crops/traffic_light'
-    directories = ['C:/traffic_light_detection/CV/dataset1/red', 'C:/traffic_light_detection/CV/dataset1/yellow',
+    directories1 = ['C:/traffic_light_detection/CV/dataset1/red', 'C:/traffic_light_detection/CV/dataset1/yellow',
                    'C:/traffic_light_detection/CV/dataset1/green', 'C:/traffic_light_detection/CV/dataset1/none']
     directories2 = ['C:/traffic_light_detection/CV/dataset2/red', 'C:/traffic_light_detection/CV/dataset2/yellow',
                    'C:/traffic_light_detection/CV/dataset2/green', 'C:/traffic_light_detection/CV/dataset2/none']
@@ -143,7 +143,7 @@ if __name__ == '__main__':
                    '/home/rtrk/teodora/traffic_light_detection/CV/dataset2/green', '/home/rtrk/teodora/traffic_light_detection/CV/dataset2/none']
     classes = [0, 1, 2, 3]
 
-    for directory_path, label in zip(directories3, classes):
+    for directory_path, label in zip(directories2, classes):
         for filename in os.listdir(directory_path):
             if filename.endswith('.jpg'):
                 file_path = os.path.join(directory_path, filename)
