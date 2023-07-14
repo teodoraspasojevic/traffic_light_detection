@@ -100,17 +100,17 @@ def detect_traffic_light_state(img_bgr):
     plt.show()
 
     # Define ROIs
-    red_lower1 = np.array([0, 120, 50])
+    red_lower1 = np.array([0, 80, 100])
     red_upper1 = np.array([10, 255, 255])
-    red_lower2 = np.array([170, 120, 50])
+    red_lower2 = np.array([170, 80, 100])
     red_upper2 = np.array([180, 255, 255])
 
-    yellow_lower = np.array([20, 100, 200])
-    yellow_upper = np.array([30, 255, 255])
+    yellow_lower = np.array([20, 30, 200])
+    yellow_upper = np.array([40, 255, 255])
 
     green_lower1 = np.array([80, 50, 200])
     green_upper1 = np.array([100, 255, 255])
-    green_lower2 = np.array([50, 100, 150])
+    green_lower2 = np.array([50, 50, 150])
     green_upper2 = np.array([80, 255, 255])
 
     # Create masks for Each Color
@@ -194,7 +194,7 @@ def detect_traffic_light_state(img_bgr):
 if __name__ == '__main__':
 
     path = directory_path2 = 'C:/traffic_light_detection/CV/classification/none/none18.jpg'
-    path2 = '/home/rtrk/teodora/traffic_light_detection/runs_cw/detect_shuffle_ft/crops/0/561_1687864832736_png.rf.5331f1f9628765bc41aed7340cc8ca9a12.jpg'
+    path2 = '/home/rtrk/teodora/traffic_light_detection/CV/classification2/red/red1.jpg'
     img = cv2.imread(path2)
     assert img is not None, "file could not be read, check with os.path.exists()"
     detect_traffic_light_state(img)

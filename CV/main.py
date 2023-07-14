@@ -8,10 +8,15 @@ num_yellow = 0
 num_green = 0
 num_none = 0
 
-total_red = 618
-total_yellow = 16
-total_green = 421
-total_none = 39
+# total_red = 618
+# total_yellow = 16
+# total_green = 421
+# total_none = 39
+
+total_red = 432
+total_yellow = 31
+total_green = 149
+total_none = 826
 
 conf_matrix = np.zeros((4, 4))
 
@@ -36,17 +41,17 @@ def detect_traffic_light_state(img_bgr, label):
     img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
 
     # Define ROIs
-    red_lower1 = np.array([0, 120, 50])
+    red_lower1 = np.array([0, 50, 100])
     red_upper1 = np.array([10, 255, 255])
-    red_lower2 = np.array([170, 120, 50])
+    red_lower2 = np.array([170, 50, 100])
     red_upper2 = np.array([180, 255, 255])
 
-    yellow_lower = np.array([20, 100, 200])
-    yellow_upper = np.array([30, 255, 255])
+    yellow_lower = np.array([20, 30, 200])
+    yellow_upper = np.array([40, 255, 255])
 
     green_lower1 = np.array([80, 50, 200])
     green_upper1 = np.array([100, 255, 255])
-    green_lower2 = np.array([70, 100, 150])
+    green_lower2 = np.array([50, 50, 150])
     green_upper2 = np.array([80, 255, 255])
 
     # Create masks for Each Color
@@ -91,7 +96,7 @@ def detect_traffic_light_state(img_bgr, label):
                     sum_green += 1
 
     # Classify and Save Image
-    output_directory = 'C:/traffic_light_detection/CV/classification'
+    output_directory = 'C:/traffic_light_detection/CV/classification2'
 
     sums = [sum_red, sum_yellow, sum_green]
     if max(sums) == 0:
@@ -130,11 +135,15 @@ if __name__ == '__main__':
 
     # directory_path = '/home/rtrk/teodora/traffic_light_detection/runs_rw1/detect_test_ft_crops/crops/traffic_light'
     # directory_path2 = 'C:/traffic_light_detection/runs_rw1/detect_test_ft_crops/crops/traffic_light'
-    directories = ['C:/traffic_light_detection/CV/red', 'C:/traffic_light_detection/CV/yellow',
-                   'C:/traffic_light_detection/CV/green', 'C:/traffic_light_detection/CV/none']
+    directories = ['C:/traffic_light_detection/CV/dataset1/red', 'C:/traffic_light_detection/CV/dataset1/yellow',
+                   'C:/traffic_light_detection/CV/dataset1/green', 'C:/traffic_light_detection/CV/dataset1/none']
+    directories2 = ['C:/traffic_light_detection/CV/dataset2/red', 'C:/traffic_light_detection/CV/dataset2/yellow',
+                   'C:/traffic_light_detection/CV/dataset2/green', 'C:/traffic_light_detection/CV/dataset2/none']
+    directories3 = ['/home/rtrk/teodora/traffic_light_detection/CV/dataset2/red', '/home/rtrk/teodora/traffic_light_detection/CV/dataset2/yellow',
+                   '/home/rtrk/teodora/traffic_light_detection/CV/dataset2/green', '/home/rtrk/teodora/traffic_light_detection/CV/dataset2/none']
     classes = [0, 1, 2, 3]
 
-    for directory_path, label in zip(directories, classes):
+    for directory_path, label in zip(directories3, classes):
         for filename in os.listdir(directory_path):
             if filename.endswith('.jpg'):
                 file_path = os.path.join(directory_path, filename)
@@ -181,5 +190,5 @@ if __name__ == '__main__':
         for j in range(len(conf_matrix)):
             plt.text(j, i, str(conf_matrix[i, j]), ha='center', va='center', color='black')
 
-    plt.savefig('confusion_matrix.png', format='png')
+    plt.savefig('confusion_matrix2.png', format='png')
     plt.show()
